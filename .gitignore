@@ -1,0 +1,32 @@
+# Credentials and local configuration
+.secrets/
+.env
+.env.*
+!.env.example
+config/local_*
+*.pem
+*.key
+*.p12
+*.pfx
+# Runtime data and media
+data/
+outputs/
+models/
+*.sqlite*
+*.db
+*.db-*
+*.jsonl
+*.log
+*.mp4
+*.mov
+*.wav
+*.mp3
+*.zip
+# Dependencies and caches
+.venv/
+.media-venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store

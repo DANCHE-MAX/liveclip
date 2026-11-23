@@ -1,0 +1,31 @@
+const assert = require('node:assert/strict');
+const { requestExistingDownload, createRegistry } = require('../scripts/changuanjia_cua.cjs');
+const { execFileSync } = require('node:child_process');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+(async () => {
+  const root=path.resolve(__dirname,'..'), tmp=fs.mkdtempSync(path.join(os.tmpdir(),'liveclip-reg-'));
+  const db=path.join(tmp,'registry.sqlite'), source=path.join(tmp,'clip.mp4'); fs.writeFileSync(source,'clip');
+  const py=path.join(root,'.venv/bin/python'), peak='2026-11-18T15:43:00+08:00', stream='s1';
+  execFileSync(py,['-c', 'from liveclip.download_registry import DownloadRegistry; import sys; DownloadRegistry(sys.argv[1]).register_existing(sys.argv[2],sys.argv[3],sys.argv[4])',db,stream,peak,source],{cwd:root});
+  const registry=createRegistry({python:py,projectRoot:root,database:db});
+  let touched=false; const app={getAXState(){touched=true; throw Error('must reuse without opening webpage');}};
+  const result=await requestExistingDownload(app,'2026-11-17 19:45','15:40:00','15:46:00',registry,stream,peak);
+  assert.equal(result.status,'reused'); assert.equal(result.path,fs.realpathSync(source)); assert.equal(touched,false);
+  fs.unlinkSync(source);
+  await assert.rejects(()=>requestExistingDownload(app,'2026-11-17 19:45','15:40:00','15:46:00',registry,stream,peak));
+  assert.equal(touched,false);
+  fs.rmSync(tmp,{recursive:true,force:true});
+  console.log('download registry bridge test passed');
+})().catch(e=>{console.error(e);process.exitCode=1});
+assert.equal(typeof require('../scripts/changuanjia_cua.cjs').createDownloadWatcher,'function');
+;(async () => {
+  const root=path.resolve(__dirname,'..'), tmp=fs.mkdtempSync(path.join(os.tmpdir(),'liveclip-daily-'));
+  const registry=createRegistry({python:path.join(root,'.venv/bin/python'),projectRoot:root,database:path.join(tmp,'registry.sqlite'),dailyBudgetDay:'2026-11-20'});
+  const peak='2026-11-19T12:00:00+08:00';
+  for(let i=0;i<11;i++) assert.equal((await registry.reserve(String(i),peak)).status,'reserved');
+  await assert.rejects(()=>registry.reserve('twelfth',peak));
+  fs.rmSync(tmp,{recursive:true,force:true});
+  console.log('daily download budget bridge passed');
+})().catch(e=>{console.error(e);process.exitCode=1});
