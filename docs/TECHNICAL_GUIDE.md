@@ -41,3 +41,13 @@ node --test tests/*.cjs
 
 
 [脱敏与验证说明](SANITIZATION.md)
+
+## 2026-11-24 模块更新
+
+- `liveclip.doubao_audio`：音频与图片审核请求缓存及回执保存，结果不明时禁止自动重复提交。
+- `liveclip.doubao_clips`：句子组转写、候选筛选与音画审核；新增默认豆包模型配置，并支持本地 `.secrets/ark_api_key`。
+- `liveclip.post_upload`：素材上传后的标签、运行中计划状态核验与处理记录。
+- `liveclip.paired_delivery`：原片与精选片段分别打包，校验上传凭据及双包交付核验条件。
+- 上传器依赖本地 `outputs/control_state.json` 及相关核验记录；生产状态文件未随仓库发布。接入平台写操作前需配置并明确授权。
+
+本次发布仅同步源码与模拟测试，不执行真实模型调用、广告修改或消息交付。

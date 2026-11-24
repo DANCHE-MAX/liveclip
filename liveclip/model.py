@@ -6,9 +6,10 @@ import urllib.error
 from pathlib import Path
 
 DEEPSEEK_KEY_FILE = Path(__file__).resolve().parents[1] / '.secrets' / 'deepseek_api_key'
+ARK_KEY_FILE = Path(__file__).resolve().parents[1] / '.secrets' / 'ark_api_key'
 
 PROVIDERS = {
-    'doubao': ('https://ark.cn-beijing.volces.com/api/v3/chat/completions', 'ARK_API_KEY', 'doubao-seed-2-0-mini-260428'),
+    'doubao': ('https://ark.cn-beijing.volces.com/api/v3/chat/completions', 'ARK_API_KEY', 'doubao-seed-2-1-lite-260915'),
     'deepseek': ('https://api.deepseek.com/chat/completions', 'DEEPSEEK_API_KEY', 'deepseek-flash'),
 }
 
@@ -35,6 +36,8 @@ class Client:
         key = os.environ.get(self.key_env, '').strip()
         if not key and self.provider == 'deepseek' and DEEPSEEK_KEY_FILE.is_file():
             key = DEEPSEEK_KEY_FILE.read_text(encoding='utf8').strip()
+        if not key and self.provider == 'doubao' and ARK_KEY_FILE.is_file():
+            key = ARK_KEY_FILE.read_text(encoding='utf8').strip()
         return key
 
     def review(self, prompt, images=()):

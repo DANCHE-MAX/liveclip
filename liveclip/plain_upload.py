@@ -20,15 +20,18 @@ class PlainQueue:
  def rows(self):
   with sqlite3.connect(self.path) as d:
    d.row_factory=sqlite3.Row;return [dict(x) for x in d.execute('SELECT * FROM tasks ORDER BY id')]
- def stage_report(self,report_path,accounts):
+ def stage_report(self,report_path,accounts,excluded_hashes=()):
   import json
   report_path=Path(report_path).resolve(strict=True)
   report=json.loads(report_path.read_text(encoding='utf8'))
   clips=report.get('accepted')
   if report.get('status')!='complete' or not isinstance(clips,list) or not clips:raise ValueError('Completed review with accepted clips required')
   if len(accounts)!=2 or len(set(accounts))!=2:raise ValueError('Two distinct accounts required')
-  files=[report_path.parent/'clips'/f'clip_{i:02d}.mp4' for i in range(1,len(clips)+1)]
+  files=[report_path.parent/'clips'/f'clip_{i:02d}.mp4' for i,c in enumerate(clips,1) if c.get('sha256') not in excluded_hashes]
   if any(not p.is_file() or not p.stat().st_size for p in files):raise ValueError('Rendered clip missing')
+  for i,c in enumerate(clips,1):
+   if c.get('sha256') in excluded_hashes:continue
+   if c.get('sha256') and hashlib.sha256((report_path.parent/'clips'/f'clip_{i:02d}.mp4').read_bytes()).hexdigest()!=c['sha256']:raise ValueError('Reviewed clip hash changed')
   for account in accounts:
    for p in files:self.add(account,p,hashlib.sha256(p.read_bytes()).hexdigest())
  def import_history(self,history_path):

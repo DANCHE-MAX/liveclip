@@ -26,3 +26,12 @@ class PlainQueueTests(unittest.TestCase):
    def up(r):calls.append(1);return {'code':40100}
    self.assertEqual(q.run(lambda r:False,up,lambda r:None,check_file=False),'paused_rate_limit')
    self.assertEqual(len(calls),1)
+
+class ExcludedReportTests(unittest.TestCase):
+ def test_manual_exclusion_skips_deleted_file_before_staging(self):
+  import json
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);report=root/'review_report.json'
+   report.write_text(json.dumps({'status':'complete','accepted':[{'sha256':'manual'}]}))
+   q=PlainQueue(root/'q.db');q.stage_report(report,['a','b'],excluded_hashes={'manual'})
+   self.assertEqual(q.rows(),[])

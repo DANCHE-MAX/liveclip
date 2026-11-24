@@ -18,7 +18,7 @@ class ModelTests(unittest.TestCase):
                 self.assertEqual(Client().get_key(), 'test-only-secret')
 
     def test_missing_key_stops_before_request(self):
-        with patch.dict('os.environ', {}, clear=True), patch('urllib.request.urlopen') as request:
+        with patch.dict('os.environ', {}, clear=True), patch('liveclip.model.ARK_KEY_FILE', __import__('pathlib').Path('/nonexistent/test-only-ark-key')), patch('urllib.request.urlopen') as request:
             with self.assertRaises(RuntimeError):
                 Client('doubao').review('test')
             request.assert_not_called()
